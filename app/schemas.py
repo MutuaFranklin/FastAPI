@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 
 
 #Pydantic is a data validation and parsing library
@@ -54,3 +54,6 @@ class PostResponse(PostBase):
         orm_mode=True
         
         
+class Vote(BaseModel):
+    post_id:int
+    dir: conint(le=1)
