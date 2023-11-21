@@ -16,6 +16,7 @@
     "autoflush",
     "conint",
     "fastapi",
+    "isouter",
     "ondelete",
     "passlib",
     "sessionmaker"

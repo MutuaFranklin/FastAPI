@@ -34,7 +34,6 @@ class PostBase(BaseModel):
     title:str
     content: str
     published:bool=True
-    #rating: Optional[int] = None
     
 class CreatePost(PostBase):
     pass 
@@ -53,7 +52,10 @@ class PostResponse(PostBase):
     class Config:
         orm_mode=True
         
-        
 class Vote(BaseModel):
     post_id:int
     dir: conint(le=1)
+    
+class PostVotesResponse(PostBase):
+    Post:PostResponse
+    vote:int
