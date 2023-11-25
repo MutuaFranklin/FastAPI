@@ -56,6 +56,6 @@ class Vote(BaseModel):
     post_id:int
     dir: conint(le=1)
     
-class PostVotesResponse(PostBase):
-    Post:PostResponse
-    vote:int
+class PostVotesResponse(BaseModel):
+    post: PostResponse
+    votes: int

@@ -19,14 +19,30 @@ def get_my_posts(db: Session=Depends(get_db), current_user: int =Depends(oauth2.
     # print(current_user.id)
     return posts
 
-# @router.get("/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostResponse])
-@router.get("/all", status_code=status.HTTP_200_OK)
-def get_all_posts(db: Session=Depends(get_db), current_user: int =Depends(oauth2.get_current_user), limit: int =20, skip:int =0, search: Optional[str]=""):
-    posts=db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, 
-                                                                                         isouter=True).group_by(models.Post.id).all()
+@router.get("/all", response_model=List[dict], status_code=status.HTTP_200_OK)
+# @router.get("/all", response_model=List[schemas.PostVotesResponse], status_code=status.HTTP_200_OK)
+def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 20, skip: int = 0, search: Optional[str] = "",
+):
+    # Apply filter() before limit() or offset()
+    posts = (
+        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+        .outerjoin(models.Vote, models.Vote.post_id == models.Post.id)
+        .filter(models.Post.title.contains(search))
+        .group_by(models.Post.id)
+        .limit(limit)
+        .offset(skip)
+        .all()
+    )
 
-    # print(results)
+    # Convert the tuple into a list of dictionaries
+    results = [
+        {
+            "post": {key: value for key, value in post.__dict__.items() if not key.startswith('_')},
+            "votes": votes,
+        }
+        for post, votes in posts
+    ]
+
     return results
 
 
