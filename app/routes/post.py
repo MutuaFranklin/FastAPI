@@ -95,8 +95,8 @@ def create_post(post: schemas.CreatePost, db: Session =Depends(get_db), current_
 
 @router.get("/{id}",  response_model=schemas.PostVotesResponse)
 def get_post(id:int, db: Session =Depends(get_db), current_user: int =Depends(oauth2.get_current_user)):    
-    #directly unpack the tuple in the query result and use post and votes without introducing an intermediate variable.
-    post, votes = (
+    # Directly use the result of the query without assigning to a variable
+    post_and_votes = (
         db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
         .outerjoin(models.Vote, models.Vote.post_id == models.Post.id)
         .filter(models.Post.id == id)
@@ -104,8 +104,11 @@ def get_post(id:int, db: Session =Depends(get_db), current_user: int =Depends(oa
         .first()
     )
 
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail =f"Post with id: {id} was not found")
+    if not post_and_votes:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")
+
+    # Unpack the tuple only if it's not None
+    post, votes = post_and_votes    
     
     # Convert the tuple into PostVotesResponse Pydantic models
     post_response = schemas.PostVotesResponse(
@@ -123,7 +126,7 @@ def get_post(id:int, db: Session =Depends(get_db), current_user: int =Depends(oa
         ),
         votes=votes,
     )
-          
+    
     return post_response
 
 
