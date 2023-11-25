@@ -19,8 +19,8 @@ def get_my_posts(db: Session=Depends(get_db), current_user: int =Depends(oauth2.
     # print(current_user.id)
     return posts
 
-@router.get("/all", response_model=List[dict], status_code=status.HTTP_200_OK)
-# @router.get("/all", response_model=List[schemas.PostVotesResponse], status_code=status.HTTP_200_OK)
+#@router.get("/all", response_model=List[dict], status_code=status.HTTP_200_OK)
+@router.get("/all", response_model=List[schemas.PostVotesResponse], status_code=status.HTTP_200_OK)
 def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 20, skip: int = 0, search: Optional[str] = "",
 ):
     # Apply filter() before limit() or offset()
@@ -34,12 +34,23 @@ def get_all_posts(db: Session = Depends(get_db), current_user: int = Depends(oau
         .all()
     )
 
-    # Convert the tuple into a list of dictionaries
+  # Convert the tuple into a list of PostVotesResponse Pydantic models
     results = [
-        {
-            "post": {key: value for key, value in post.__dict__.items() if not key.startswith('_')},
-            "votes": votes,
-        }
+        schemas.PostVotesResponse(
+            post=schemas.PostResponse(
+                id=post.id,
+                title=post.title,
+                content=post.content,
+                published=post.published,
+                created_at=post.created_at,
+                owner=schemas.UserResponse(
+                    id=post.owner.id,
+                    email=post.owner.email,
+                    created_at=post.owner.created_at,
+                ),
+            ),
+            votes=votes,
+        )
         for post, votes in posts
     ]
 
