@@ -32,4 +32,4 @@ app.include_router(vote.router)
 #routes    
 @app.get("/")
 def root():
-    return {"Message": "Test case one"}
+    return {"message": "The server is running successfully!"}
